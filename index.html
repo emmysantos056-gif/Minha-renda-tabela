@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f00000">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<title>Tabela de Preços</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:14px;background:#f4f4f4;color:#111;font-family:Arial,sans-serif}
+main{max-width:900px;margin:auto}header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
+h1{font-size:clamp(20px,4vw,29px);margin:4px 0}.stats{display:flex;gap:8px;flex-wrap:wrap}
+.stat{background:white;border:1px solid #bbb;border-radius:9px;padding:9px 12px}.stat small{display:block;color:#555;font-size:12px}.stat strong{font-size:17px}
+.track{height:12px;background:#ddd;border-radius:20px;overflow:hidden;margin:12px 0}.bar{height:100%;width:0;background:#159447}
+.wrap{overflow-x:auto;background:white;padding:7px;border:1px solid #aaa}.grid{display:grid;grid-template-columns:repeat(10,minmax(46px,1fr));gap:2px;min-width:500px}
+.heading,.cell,.footer{border:1px solid #999}.heading{grid-column:1/-1;background:#d9d9d9;padding:10px;font-weight:bold}
+.cell{background:#f00000;color:#111;min-height:45px;text-align:right;padding:7px;font-size:16px;border-radius:0;cursor:pointer}.cell.done{background:#00e51b}
+.footer{background:#d9d9d9;padding:12px;font-weight:bold;margin-top:8px}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}button.action{padding:11px 14px;border:0;border-radius:8px;font-weight:bold;font-size:14px}.all{background:#d8eadb}.clear{background:#333;color:white}
+.note{font-size:12px;color:#555;line-height:1.4}
+</style>
+</head>
+<body><main>
+<header><h1>TABELA DE PREÇOS CONQUISTADOS</h1><div class="stats">
+<div class="stat"><small>Valor marcado</small><strong id="marked">R$ 10,00</strong></div>
+<div class="stat"><small>Falta para R$ 6.000</small><strong id="left">R$ 5.990,00</strong></div>
+<div class="stat"><small>Marcados</small><strong id="count">1 / 130</strong></div>
+</div></header>
+<div class="track"><div class="bar" id="bar"></div></div>
+<div class="wrap"><div class="grid" id="grid"><div class="heading">TABELA DE PREÇOS CONQUISTADOS</div></div></div>
+<div class="footer">FINAL: R$ 6.000,00 EM 7 MESES</div>
+<div class="actions"><button class="action all" id="all">Marcar todos</button><button class="action clear" id="clear">Desmarcar todos</button></div>
+<p class="note">Toque nos quadradinhos para marcar ou desmarcar. Suas marcações ficam guardadas neste aparelho.</p>
+</main>
+<script>
+(()=>{const vals=[10,10,20,20,30,30,30,50,50,50,100,100,100],cells=[],grid=document.getElementById('grid');
+vals.forEach(v=>{for(let i=0;i<10;i++){let b=document.createElement('button');b.className='cell';b.type='button';b.textContent=v;b.addEventListener('click',()=>{b.classList.toggle('done');update()});grid.appendChild(b);cells.push({el:b,value:v})}});
+cells[0].el.classList.add('done');const fmt=n=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+function update(){let chosen=cells.filter(c=>c.el.classList.contains('done')),sum=chosen.reduce((a,c)=>a+c.value,0);
+document.getElementById('marked').textContent=fmt(sum);document.getElementById('left').textContent=fmt(Math.max(0,6000-sum));
+document.getElementById('count').textContent=chosen.length+' / 130';document.getElementById('bar').style.width=Math.min(100,sum/6000*100)+'%';
+try{localStorage.setItem('marked',JSON.stringify(chosen.map(c=>cells.indexOf(c))))}catch(e){}}
+document.getElementById('all').onclick=()=>{cells.forEach(c=>c.el.classList.add('done'));update()};
+document.getElementById('clear').onclick=()=>{cells.forEach(c=>c.el.classList.remove('done'));update()};
+try{let saved=JSON.parse(localStorage.getItem('marked')||'null');if(Array.isArray(saved))cells.forEach((c,i)=>c.el.classList.toggle('done',saved.includes(i)))}catch(e){}
+update();if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
+})();
+</script></body></html>
